@@ -15,15 +15,22 @@ np.random.seed(448)
 
 fname = "aita_clean.csv"
 
+def get_basic_stemmed_and_lemmatized_df(ngram_start=1, ngram_end=1):
+    df = pd.read_csv(fname)
+    df["body"] = df["title"].astype(str) + df["body"].astype(str)
+    stem_and_lemmatize(df)
+
+    return df
+
 def get_data(ngram_start=1, ngram_end=1):
-  df = pd.read_csv(fname)
-  df["body"] = df["title"].astype(str) + df["body"].astype(str)
-  stem_and_lemmatize(df)  
+    df = pd.read_csv(fname)
+    df["body"] = df["title"].astype(str) + df["body"].astype(str)
+    stem_and_lemmatize(df)  
 
-  train_data, test_data = train_test_split(df, test_size=0.33, random_state=448)
+    train_data, test_data = train_test_split(df, test_size=0.33, random_state=448)
 
-  X, vectorizer = tf_idf_bag_of_words(df)  
-  return df
+    X, vectorizer = tf_idf_bag_of_words(df, ngram_start, ngram_end)  
+    return df
 
 def expand_contractions(string):
     expanded_words = []   
@@ -35,7 +42,7 @@ def expand_contractions(string):
 
 def preprocess_string(string):
   # removes everything in brackets '[...]' = ''
-  string = re.sub("[\[].*?[\]]", "", string)
+  # string = re.sub("[\[].*?[\]]", "", string)
   return word_tokenize(expand_contractions(string))
 
 def get_stopwords():

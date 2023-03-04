@@ -32,30 +32,23 @@ def get_data(ngram_start=1, ngram_end=1):
     X, vectorizer = tf_idf_bag_of_words(df, ngram_start, ngram_end)  
     return df
 
-def expand_contractions(string):
-    expanded_words = []   
-    for word in string.split():
-      expanded_words.append(contractions.fix(word))  
-
-    expanded_text = ' '.join(expanded_words)
-    return expanded_text
-
-def preprocess_string(string):
-  # removes everything in brackets '[...]' = ''
-  # string = re.sub("[\[].*?[\]]", "", string)
-  return word_tokenize(expand_contractions(string))
+def preprocess_string(string, stopWords):
+  return [contractions.fix(word) for word in word_tokenize(string) if word not in stopWords]
 
 def get_stopwords():
     pronouns = []
     with open("pronouns.txt", 'r') as f:
         pronouns = [x.strip() for x in f.readlines()]
 
-    stopwords = set(filter(lambda x : x not in pronouns, stopwords.words('english'))).add('AITA')
-    return stopwords
+    stopWords = set(filter(lambda x : x not in pronouns, stopwords.words('english')))
+    return stopWords
 
 def stem_and_lemmatize(df):
     lemmatizer = WordNetLemmatizer()
-    df["lemmatized_body"] = df["body"].map(lambda x : [lemmatizer.lemmatize(word) for word in preprocess_string(x)])
+    stopWords = get_stopwords()
+    df["processed_body_split"] = df["body"].map(lambda x : [lemmatizer.lemmatize(word) for word in preprocess_string(x.lower(), stopWords)])
+    df["processed_body"] = df["processed_body_split"].map(lambda x : ' '.join(x))
+    df["num_words"] = df["processed_body_split"].map(lambda x : len(x))
 
 def tf_idf_bag_of_words(input_corpus, ngram_start=1, ngram_end=1):
     vectorizer = TfidfVectorizer(

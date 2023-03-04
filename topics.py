@@ -12,7 +12,7 @@ from nltk.corpus import stopwords
 
 # Define function for stopwords, bigrams, trigrams and lemmatization
 
-def base_df_to_topics_df(df):
+def base_df_to_topics_df(df, n_topics=20):
     # Convert to list 
     data = df.body.values.tolist()
 
@@ -35,7 +35,6 @@ def base_df_to_topics_df(df):
     # View 
     print(corpus[:1])
 
-    n_topics=20
     lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                                 id2word=id2word,
                                                 num_topics=n_topics, 

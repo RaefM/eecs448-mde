@@ -12,8 +12,14 @@ from nltk.corpus import stopwords
 
 def get_corpus(df):
     # Convert to list 
-    data_words = [word_tokenize(sentence) for sentence in df.body.values]
+    data = df.body.values.tolist()
+    
+    data_words = list([word_tokenize(sentence) for sentence in data])
     print(data_words[:1])
+
+    # Initialize spacy 'en' model, keeping only tagger component (for efficiency)
+    # python3 -m spacy download en
+    nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
 
     # Create Dictionary 
     id2word = corpora.Dictionary(data_words)  
@@ -38,9 +44,7 @@ def base_df_to_topics_df(df, id2word, corpus, n_topics=20):
                                                     per_word_topics=True)
 
     doc_lda = lda_model[corpus] 
-    return lda_model, doc_lda
 
-def get_scores(lda_model, id2word, corpus):
     # Compute Perplexity
     print('\nPerplexity: ', lda_model.log_perplexity(corpus))  
     # a measure of how good the model is. lower the better.
@@ -49,11 +53,12 @@ def get_scores(lda_model, id2word, corpus):
     coherence_model_lda = CoherenceModel(model=lda_model, texts=data, dictionary=id2word, coherence='c_v')
     coherence_lda = coherence_model_lda.get_coherence()
     print('\nCoherence Score: ', coherence_lda)
-    pass
 
-def create_topic_df(df, doc_lda, n_topics=20):
     topic_df = pd.DataFrame(doc_lda, columns = ['Topic ' + str(i) for i in range(n_topics)])
-    topic_df['id'] = df['id']
+    topic_df['id'], topic_df['verdict'], topic_df['is_asshole'] = (
+        df['id'], 
+        df['verdict'], 
+        df['is_asshole']
+    )
 
-    return topic_df
-    
+    return topic_df, lda_model

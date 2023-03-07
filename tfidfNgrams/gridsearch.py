@@ -19,9 +19,10 @@ def train_on_df(df):
     logistic_classifier = GridSearchCV(
         LogisticRegression(penalty = 'elasticnet', class_weight = 'balanced', solver = 'saga'), 
         params, 
+        scoring='balanced_accuracy',
         n_jobs = 4, 
         cv = 5, 
-        verbose = 3
+        verbose = 2
     )
     logistic_classifier.fit(X_train, y_train)
     y_pred = logistic_classifier.predict(X_test)
@@ -64,7 +65,7 @@ if __name__ == "__main__":
     doc2vec_df = doc2vec_df.drop("Unnamed: 0", axis=1)
 
     print("Beginning grid search...")
-    for curr_df, df_name in [(doc2vec_df, 'D2V')]:
+    for curr_df, df_name in [(doc2vec_df, 'D2V'), (uni_df, "UNI"), (bi_df, "BI"), (tri_df, "TRI")]:
         print('Assessing ' + df_name)
         curr_clf = train_on_df(curr_df)
         print('Had optimal parameters' + str(curr_clf.best_params_))

@@ -65,7 +65,7 @@ def construct_d2v_of_size_v(X, X_train, X_test, X_val, data_training, data_val, 
     
     print("Saving model and csv...")
     doc2vec_df.to_csv('aita_doc2vec_' + str(v) + '.csv', sep='\t', encoding='utf-8')
-    model.save('aita_doc2vec_' + str(v) + '_model')
+    model.save('aita_doc2vec_model_' + str(v))
     
     val_score = np.mean(model.score(data_val, total_sentences=len(data_val)))
     print("Doc2Vec model with v = " + str(v) + " had a log prob of " + str(val_score) + " on the validation set")

@@ -3,5 +3,6 @@
 __pycache__/
 aita_doc2vec_model
 aita_doc2vec_model.*
+aita_doc2vec_model*
 topic_lda_model*
 *.npz

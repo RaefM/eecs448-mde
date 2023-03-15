@@ -20,7 +20,7 @@ def train_on_df(df):
     X_train, X_test, y_train, y_test = train_test_split_data(df)
     params = {'C': [0.01, 0.1, 1, 10, 100], 'l1_ratio': [0, 0.2, 0.4, 0.6, 0.8, 1]}
     logistic_classifier = GridSearchCV(
-        LogisticRegression(penalty = 'elasticnet', class_weight = 'balanced', solver = 'saga', tol=1e-3, max_iter=200), 
+        LogisticRegression(penalty = 'elasticnet', class_weight = 'balanced', solver = 'saga', tol=1e-4, max_iter=600, warm_start=True), 
         params, 
         scoring='balanced_accuracy',
         n_jobs = -1, 

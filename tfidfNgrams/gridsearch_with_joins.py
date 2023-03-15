@@ -8,6 +8,8 @@ import joblib
 import numpy as np
 import pandas as pd
 from math import isclose
+from sklearn_pandas import DataFrameMapper
+from sklearn.preprocessing import StandardScaler
 
 def train_test_split_data(df):
     X = df.drop(['is_asshole', 'id'], axis=1)
@@ -40,6 +42,8 @@ if __name__ == "__main__":
     topic_df = pd.read_csv('aita_topics_5.csv', sep='\t')
     liwc_df = liwc_df.drop("Unnamed: 0", axis=1)
     liwc_df = liwc_df.rename(columns={'V1': 'id'})
+    mapper = DataFrameMapper([(liwc_df.columns[1:], StandardScaler())])
+    liwc_df[liwc_df.columns[1:]] = mapper.fit_transform(liwc_df.copy())
 
     X = base_df.processed_body.values
 

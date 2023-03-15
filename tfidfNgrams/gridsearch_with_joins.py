@@ -50,32 +50,31 @@ if __name__ == "__main__":
     print("Reading doc2vec...")
     doc2vec_df = pd.read_csv('aita_doc2vec_150.csv', sep='\t')
     doc2vec_df = doc2vec_df.drop("Unnamed: 0", axis=1)
-
-    print("Merging datasets...")
-    doc2vec_df_with_all = doc2vec_df.copy()
-    doc2vec_df_with_all = doc2vec_df_with_all.merge(
-        emotion_df[['id','Anger','Joy','Optimism','Sadness']], 
-        on='id'
-    )
-    doc2vec_df_with_all = doc2vec_df_with_all.merge(
-        base_df[['id', 'is_asshole', 'score', 'num_words']], 
-        on='id'
-    )
-    doc2vec_df_with_all = doc2vec_df_with_all.merge(
-        topic_df[['id', 'TopicProb0', 'TopicProb1', 'TopicProb2', 'TopicProb3', 'TopicProb4']], 
-        on='id'
-    )
-    doc2vec_df_with_all = doc2vec_df_with_all.merge(
-        liwc_df, 
-        on='id'
-    )
     doc2vec_df = doc2vec_df.merge(
         base_df[['id', 'is_asshole']], 
         on='id'
     )
 
+    print("Merging datasets...")
+    doc2vec_df_with_liwc = doc2vec_df.copy()
+    doc2vec_df_with_emotion = doc2vec_df.copy()
+    doc2vec_df_with_topic = doc2vec_df.copy()
+
+    doc2vec_df_with_emotion = doc2vec_df_with_emotion.merge(
+        emotion_df[['id','Anger','Joy','Optimism','Sadness']], 
+        on='id'
+    )
+    doc2vec_df_with_topic = doc2vec_df_with_topic.merge(
+        topic_df[['id', 'TopicProb0', 'TopicProb1', 'TopicProb2', 'TopicProb3', 'TopicProb4']], 
+        on='id'
+    )
+    doc2vec_df_with_liwc = doc2vec_df_with_liwc.merge(
+        liwc_df, 
+        on='id'
+    )
+
     print("Beginning grid search of LR models...")
-    for curr_df, df_name in [(doc2vec_df_with_all, 'D2VMix')]:
+    for curr_df, df_name in [(doc2vec_df_with_liwc, 'D2VMix'), (doc2vec_df_with_emotion, 'D2VEmo'), (doc2vec_df_with_topic, 'D2VTopic5')]:
         print('Assessing ' + df_name)
         curr_clf = train_on_df(curr_df)
         print('Had optimal parameters' + str(curr_clf.best_params_))

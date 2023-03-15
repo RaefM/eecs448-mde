@@ -2,6 +2,9 @@ from gensim.models.doc2vec import Doc2Vec
 from nltk import word_tokenize
 from sklearn.model_selection import train_test_split
 import pandas as pd
+from preprocess import *
+from sklearn.model_selection import train_test_split
+from gensim.models.doc2vec import TaggedDocument, Doc2Vec
 
 def train_model(data_training, vec_size=300, num_threads=6):
     model = Doc2Vec(
@@ -24,3 +27,42 @@ def construct_d2v_df(model, vecs, X, vec_size=300):
     doc2vec_df['id'] = X['id']
     
     return doc2vec_df, model.wv
+
+def X_to_tagged_set(X):
+    def to_tagged_doc(post): return TaggedDocument(word_tokenize(post['processed_body']), post['id'])
+    return X_train.apply(to_tagged_doc, axis=1)
+
+def get_data():
+    base_df = pd.read_csv('aita_preprocessed_new.csv', sep='\t')
+    X = base_df[['processed_body', 'id']]
+    y = base_df.is_asshole.values
+    X_train, X_test, _, _ = train_test_split(X, y, test_size=0.2, random_state=448, stratify=y)
+    data_training = X_to_tagged_set(X_train)
+    data_testing =  X_to_tagged_set(X_test)
+    
+    return X, data_training, data_testing
+
+def construct_d2v_of_size_v(v=300, X, data_training, data_testing):
+    print("Training a doc2vec model with vectors of size " + str(v))
+    model = train_model(data_training, vec_size=150)
+    vecs = infer_all_vecs(model, X)
+    
+    doc2vec_df, word_to_embedding = construct_d2v_df(model, vecs, X)
+    doc2vec_df.to_csv('aita_doc2vec_' + str(v) + '.csv', sep='\t', encoding='utf-8')
+    model.save('aita_doc2vec_' + + str(v) + 'model')
+    
+    training_score = model.score(data_testing, total_sentences=len(data_testing))
+    print("Doc2Vec model with v = " + str(v) + " had a log prob of " + str(training_score))
+    print('\n')
+    
+if __name__ == "__main__":
+    np.random.seed(448)
+    X, data_training, data_testing = get_data()
+    for v in [100, 150, 200, 300, 500, 750, 1000]:
+        construct_d2v_of_size_v(v, data_training, data_testing)
+        
+    pass
+    
+    
+    
+    

@@ -18,12 +18,12 @@ def train_on_df(df):
     X_train, X_test, y_train, y_test = train_test_split_data(df)
     params = {'C': [0.01, 0.1, 1, 10, 100], 'l1_ratio': [0, 0.2, 0.4, 0.6, 0.8, 1]}
     logistic_classifier = GridSearchCV(
-        LogisticRegression(penalty = 'elasticnet', class_weight = 'balanced', solver = 'saga'), 
+        LogisticRegression(penalty = 'elasticnet', class_weight = 'balanced', solver = 'saga', tol=1e-3, max_iter=200), 
         params, 
         scoring='balanced_accuracy',
-        n_jobs = 4, 
+        n_jobs = -1, 
         cv = 5, 
-        verbose = 2
+        verbose = 3
     )
     logistic_classifier.fit(X_train, y_train)
     y_pred = logistic_classifier.predict(X_test)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     )
 
     print("Beginning grid search of LR models...")
-    for curr_df, df_name in [(doc2vec_df, "D2V150"), (doc2vec_df_with_all, 'D2VMix')]:
+    for curr_df, df_name in [(doc2vec_df_with_all, 'D2VMix')]:
         print('Assessing ' + df_name)
         curr_clf = train_on_df(curr_df)
         print('Had optimal parameters' + str(curr_clf.best_params_))

@@ -55,7 +55,11 @@ def basic_collate_fn(batch):
 
 class ensembleCNNBiGRU(nn.Module):
     """
-    Based on https://arxiv.org/pdf/1805.01890.pdf RMDL;
+    Based on:
+    https://arxiv.org/pdf/1805.01890.pdf RMDL
+    With code modelled off of:
+    https://towardsdatascience.com/deep-learning-techniques-for-text-classification-78d9dc40bf7c
+    
     A NN that assesses context (BiGRU feat) while not drowning 
     relevant phrases in said context (CNN feat)
     
@@ -78,10 +82,9 @@ class ensembleCNNBiGRU(nn.Module):
         self, 
         cnn_dense_hidden_dim: int,
         rnn_dense_hidden_dim: int,
-        ffnn_dense_hidden_dim: int,
         device: str,
         dropout_rate: float = 0.25,
-        num_filters: int = 100,
+        num_filters: int = 32,
         kernel_size: int = 3,
         word_vec_length: int = 300
     ):
@@ -89,13 +92,13 @@ class ensembleCNNBiGRU(nn.Module):
         self.device = device
         
         # CNN ARCHITECTURE ##############################################################################
-        # transpose input to get N * word_vec_length * L  ===>  N * num_filters * L'
+        # transpose input to get N * w2vlen * L, then  ===>  N * (num_filters x w2vlen) * L'
         self.conv = nn.Conv1d(word_vec_length, num_filters, kernel_size)
-        # Compute max pooling along the L axis (not shown here) via torch.max, yielding N * num_filters
+        # Compute max pooling along the L axis (not shown here), yielding N * (num_filters x w2vlen)
         self.cnnDropout1 = nn.Dropout(dropout_rate)
-        self.cnnDense1 = nn.Linear(num_filters, cnn_dense_hidden_dim)
+        self.cnnDense = nn.Linear(num_filters * word_vec_length, cnn_dense_hidden_dim)
         self.cnnDropout2 = nn.Dropout(dropout_rate)
-        self.cnnDense1 = nn.Linear(cnn_dense_hidden_dim, cnn_dense_hidden_dim)
+        self.cnnOutput = nn.Linear(cnn_dense_hidden_dim, 1)
         ################################################################################################
         
         # BiGRU ARCHITECTURE ###########################################################################
@@ -105,21 +108,40 @@ class ensembleCNNBiGRU(nn.Module):
             batch_first=False,
             bidirectional=True
         )
-        self.cnnDropout2 = nn.Dropout(dropout_rate)
-        self.bigruDense1 = nn.Linear(word_vec_length * 2, rnn_dense_hidden_dim)
+        self.bigruDropout1 = nn.Dropout(dropout_rate)
+        self.bigruDense = nn.Linear(word_vec_length * 2, rnn_dense_hidden_dim)
+        self.bigruDropout2 = nn.Dropout(dropout_rate)
+        self.bigruOutput = nn.Linear(rnn_dense_hidden_dim, 1)
         ################################################################################################
         
-        # FFNN ARCHITECTURE ############################################################################
-        self.ffnn1 = nn.Linear(cnn_dense_hidden_dim + rnn_dense_hidden_dim, ffnn_hidden_dim)
-        self.output = nn.Linear(ffnn_hidden_dim, 1)
+        # Output Layer #################################################################################
+        self.output = nn.Linear(cnn_dense_hidden_dim + rnn_dense_hidden_dim, 1)
         ################################################################################################
     
-    def forward(self, windows: List[ParagraphTensor]):
-        # TODO: Fix this
-        def rnnForward(l_of_seqs):
-            # l_of_seqs shape: batch length * num_words_per_seq (ragged) * 200
+    def forward(self, posts: List[ParagraphTensor]):
+        def cnnForward(l_of_seqs):
+            #### Input reshaping ###########################################################
+                # N * num_words_per_seq (ragged) * wordveclen ==> N * max_seq_len * w2vlen
+            padded_input = nn.utils.rnn.pad_sequence(l_of_seqs, batch_first=True) 
+                # N * max_seq_len * w2vlen ==> N * w2vlen * max_seq_len (treat word2vec dimensions as channels)
+            channelled_input = torch.transpose(padded_input, 1, 2)
+            #### CNN clf convolutional layer ###############################################
+                # Convolution: N * w2vlen * max_seq_len ==> N * num_filters * (max_seq_len - 2)
+            convOut = F.relu(self.conv(channelled_input))
+                # Pooling: N * num_filters * (max_seq_len - 2) ==> N * num_filters
+            pooledOut = torch.max(convOut, dim=2).values
+            pooledOut = self.cnnDropout1(pooledOut)
+            #### CNN hidden layer ##########################################################
+            cnnDenseOut = F.relu(self.cnnDense(pooledOut))
+            cnnDenseOut = self.cnnDropout2(cnnDenseOut1)
+            #### CNN output layer ##########################################################
+            return F.sigmoid(self.cnnOutput(cnnDenseOut1))
+        
+        def biGRUForward(l_of_seqs):
+            #### BiGRU recurrent layer ####################################################
+            # l_of_seqs shape: batch length * num_words_per_seq (ragged) * w2vlen
             input_lengths = [seq.size(0) for seq in l_of_seqs]
-            padded_input = nn.utils.rnn.pad_sequence(l_of_seqs) # tensor w/ shape (max_seq_len, batch_len, 200)
+            padded_input = nn.utils.rnn.pad_sequence(l_of_seqs) # tensor shape (max_seq_len, batch_len, w2vlen)
             total_length = padded_input.size(0)
             packed_input = nn.utils.rnn.pack_padded_sequence(
                 padded_input, input_lengths, batch_first=False, enforce_sorted=False
@@ -129,14 +151,21 @@ class ensembleCNNBiGRU(nn.Module):
                 packed_output, batch_first=False, total_length=total_length
             )
             # compute max pooling along the time dimension to collapse into a single rnn_hidden_dim vector
-            return torch.max(output, dim=0).values
-
-        to_be_rnned = [sentence_embed for window in windows for sentence_embed in window]
-        rnn_embeddings = rnnForward(to_be_rnned)
+            rnn_embeddings = torch.max(output, dim=0).values
+            rnn_embeddings = self.bigruDropout1(rnn_embeddings)
+            #### BiGRU hidden layer #######################################################
+            rnnDenseOut = F.relu(self.bigruDense(rnn_embeddings))
+            rnnDenseOut = self.bigruDropout2(rnnDenseOut)
+            ### BiGRU output layer ########################################################
+            return F.sigmoid(self.bigruOutput(rnn_embeddings))
+            
+        cnn_embeds = cnnForward(posts)    # N * cnn_dense_hidden_dim
+        rnn_embeds = biGRUForward(posts)  # N * rnn_dense_hidden_dim
         
-        vs = F.relu(self.fc1(vs))
-        output = torch.transpose(self.output(vs), dim0=0, dim1=1)[0]
-        return output
+        combined_input = torch.vstack((cnn_embeds, rnn_embeds))
+        predictionProbs = F.sigmoid(self.output(combined_input))
+        
+        return predictionProbs
 
 
 #########################################################################
@@ -147,16 +176,16 @@ def calculate_loss(scores, labels, loss_fn):
     return loss_fn(scores, labels.float())
 
 def get_optimizer(net, lr, weight_decay):
-    return optimizer.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
-
+    return optimizer.Adam(net.parameters(), lr=lr)
 
 def get_hyper_parameters():
-    window_size = [3, 5, 7]
-    hidden_dim = [200]
-    lr = [1e-3, 1e-4]
-    weight_decay = [0.01, 0.1, 0.25, 0.5, 1.0, 1.25, 2.0, 2.5, 5.0]
-
-    return hidden_dim, lr, weight_decay, window_size
+    cnn_dense_hidden_dim = [1024, 2048, 4096]
+    rnn_dense_hidden_dim = [256, 512]
+    dropout_rate = [0.25, 0.5]
+    lr = [3e-3, 3e-4]
+    weight_decay = [0, 0.01]
+    
+    return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
 
 
 def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=30,
@@ -225,7 +254,6 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
 
 def get_predictions(scores: torch.Tensor):
     return torch.IntTensor([1 if score > 0 else 0 for score in scores])
-
 
 def get_validation_performance(net, loss_fn, data_loader, device):
     net.eval()

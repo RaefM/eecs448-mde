@@ -212,8 +212,8 @@ def get_optimizer(net, lr, weight_decay):
 def get_hyper_parameters():
     cnn_dense_hidden_dim = [128, 256]
     rnn_dense_hidden_dim = [256, 512]
-    dropout_rate = [0.25, 0.5]
-    lr = [3e-2, 3e-3]
+    dropout_rate = [0.5]
+    lr = [3e-2, 3e-3, 3e-4]
     weight_decay = [0.1, 0.01, 0]
     
     return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
@@ -318,14 +318,17 @@ def get_validation_performance(net, loss_fn, data_loader, device):
     return accuracy, total_loss
 
 
-def plot_loss(stats):
+def plot_loss(stats, display=True):
     """Plot training loss and validation loss."""
     plt.plot(stats['train_loss_ind'], stats['train_loss'], label='Training loss')
     plt.plot(stats['val_loss_ind'], stats['val_loss'], label='Validation loss')
     plt.legend()
     plt.xlabel('Number of iterations')
     plt.ylabel('Loss')
-    plt.show()
+    if display:
+        plt.show()
+    else:
+        plt.savefig('best_nn_loss.png')
 
 class EarlyStopperAcc:
     def __init__(self, patience=5):

@@ -96,7 +96,7 @@ class BiGRU(nn.Module):
         rnnDenseOut = F.relu(self.bigruDense(rnn_embeddings))
         rnnDenseOut = self.bigruDropout2(rnnDenseOut)
         ### BiGRU output layer ########################################################
-        return torch.squeeze(self.bigruOutput(rnnDenseOut))
+        return self.bigruOutput(rnnDenseOut).flatten()
     
 class textCNN(nn.Module):
     def __init__(
@@ -136,7 +136,7 @@ class textCNN(nn.Module):
         cnnDenseOut = F.relu(self.cnnDense(pooledOut))
         cnnDenseOut = self.cnnDropout2(cnnDenseOut)
         #### CNN output layer ##########################################################
-        return torch.squeeze(self.cnnOutput(cnnDenseOut))
+        return self.cnnOutput(cnnDenseOut).flatten()
         
 class ensembleCNNBiGRU(nn.Module):
     """
@@ -193,8 +193,11 @@ class ensembleCNNBiGRU(nn.Module):
         self.output = nn.Linear(2, 1)
     
     def forward(self, posts):
-        combined_input = torch.stack((self.cnn(posts), self.bigru(posts)), dim=1)
-        predictionProbs = torch.squeeze(self.output(combined_input))
+        cnn_out = self.cnn(posts)
+        bigru_out = self.bigru(posts)
+        combined_input = torch.stack((cnn_out, bigru_out), dim=1)
+        
+        predictionProbs = self.output(combined_input).flatten()
         
         return predictionProbs
 
@@ -204,6 +207,9 @@ class ensembleCNNBiGRU(nn.Module):
 #########################################################################
 
 def calculate_loss(scores, labels, loss_fn):
+    if (scores.shape != labels.shape):
+        print(scores)
+        print(labels)
     return loss_fn(scores, labels.float())
 
 def get_optimizer(net, lr, weight_decay):
@@ -287,7 +293,8 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
 
 
 def get_predictions(scores: torch.Tensor):
-    return torch.IntTensor([1 if score > 0 else 0 for score in scores])
+    probs = torch.sigmoid(scores)
+    return torch.IntTensor([1 if prob > 0.5 else 0 for prob in probs])
 
 def get_validation_performance(net, loss_fn, data_loader, device):
     net.eval()

@@ -18,20 +18,20 @@ from sklearn.metrics import balanced_accuracy_score
 def get_word_embedding(embed, unk_rep, word: str):
     return embed[word] if word in embed.key_to_index else unk_rep
 
-def get_paragraph_embedding(embed, unk_rep, paragraph) -> ParagraphTensor:
-    return torch.FloatTensor([
-        get_word_embedding(embed, unk_rep, word) for word in word_tokenize(paragraph)
+def get_paragraph_embedding(embed, unk_rep, paragraph):
+    return torch.vstack([
+        torch.FloatTensor(get_word_embedding(embed, unk_rep, word)) for word in word_tokenize(paragraph)
     ])
 
 class AITADataset(Dataset):
-    def __init__(self, posts, labels, embed, window_size=3):
+    def __init__(self, posts, labels, embed):
         super().__init__()
         unk = np.mean(embed.vectors, axis=0)
         
         self.data = []
         for post, is_asshole in zip(posts, labels):
             self.data.append({
-                'post': get_paragraph_embedding(post),
+                'post': get_paragraph_embedding(embed, unk, post),
                 'label': is_asshole
             })
     
@@ -84,8 +84,8 @@ class ensembleCNNBiGRU(nn.Module):
         rnn_dense_hidden_dim: int,
         device: str,
         dropout_rate: float = 0.25,
-        num_filters: int = 32,
-        kernel_size: int = 3,
+        num_filters: int = 100,
+        kernel_sizes: List[int] = [3, 4, 5],
         word_vec_length: int = 300
     ):
         super().__init__()
@@ -93,10 +93,12 @@ class ensembleCNNBiGRU(nn.Module):
         
         # CNN ARCHITECTURE ##############################################################################
         # transpose input to get N * w2vlen * L, then  ===>  N * (num_filters x w2vlen) * L'
-        self.conv = nn.Conv1d(word_vec_length, num_filters, kernel_size)
+        self.convs = nn.ModuleList(
+            [nn.Conv1d(word_vec_length, num_filters, k) for k in kernel_sizes]
+        )
         # Compute max pooling along the L axis (not shown here), yielding N * (num_filters x w2vlen)
         self.cnnDropout1 = nn.Dropout(dropout_rate)
-        self.cnnDense = nn.Linear(num_filters * word_vec_length, cnn_dense_hidden_dim)
+        self.cnnDense = nn.Linear(num_filters * len(kernel_sizes), cnn_dense_hidden_dim)
         self.cnnDropout2 = nn.Dropout(dropout_rate)
         self.cnnOutput = nn.Linear(cnn_dense_hidden_dim, 1)
         ################################################################################################
@@ -118,7 +120,7 @@ class ensembleCNNBiGRU(nn.Module):
         self.output = nn.Linear(cnn_dense_hidden_dim + rnn_dense_hidden_dim, 1)
         ################################################################################################
     
-    def forward(self, posts: List[ParagraphTensor]):
+    def forward(self, posts):
         def cnnForward(l_of_seqs):
             #### Input reshaping ###########################################################
                 # N * num_words_per_seq (ragged) * wordveclen ==> N * max_seq_len * w2vlen
@@ -127,9 +129,10 @@ class ensembleCNNBiGRU(nn.Module):
             channelled_input = torch.transpose(padded_input, 1, 2)
             #### CNN clf convolutional layer ###############################################
                 # Convolution: N * w2vlen * max_seq_len ==> N * num_filters * (max_seq_len - 2)
-            convOut = F.relu(self.conv(channelled_input))
                 # Pooling: N * num_filters * (max_seq_len - 2) ==> N * num_filters
-            pooledOut = torch.max(convOut, dim=2).values
+            convOuts = [F.relu(conv(channelled_input)) for conv in self.convs]
+            pooledOuts = [torch.max(convOut, dim=2).values for convOut in convOuts]
+            pooledOut = torch.cat(pooledOuts, 1)
             pooledOut = self.cnnDropout1(pooledOut)
             #### CNN hidden layer ##########################################################
             cnnDenseOut = F.relu(self.cnnDense(pooledOut))
@@ -179,11 +182,11 @@ def get_optimizer(net, lr, weight_decay):
     return optimizer.Adam(net.parameters(), lr=lr)
 
 def get_hyper_parameters():
-    cnn_dense_hidden_dim = [1024, 2048, 4096]
+    cnn_dense_hidden_dim = [128, 256]
     rnn_dense_hidden_dim = [256, 512]
     dropout_rate = [0.25, 0.5]
     lr = [3e-3, 3e-4]
-    weight_decay = [0, 0.01]
+    weight_decay = [0.1, 0.01, 0]
     
     return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
 
@@ -204,11 +207,11 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
         net.train()
         for windows, labels in trn_loader:
             num_itr += 1
-            windows = [[s.to(device) for s in window] for window in windows]
+            posts = [post.to(device) for post in posts]
             labels = labels.to(device)
             
             optim.zero_grad()
-            output = net(windows)
+            output = net(posts)
             loss = calculate_loss(output, labels, loss_fn)
             loss.backward()
             optim.step()

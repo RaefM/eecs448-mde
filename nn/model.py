@@ -52,9 +52,92 @@ def basic_collate_fn(batch):
     return posts, labels
 
 #######################################################################
-################################ Model ################################
+################################ Models ###############################
 #######################################################################
 
+class BiGRU(nn.Module):
+    def __init__(
+        self,
+        rnn_dense_hidden_dim: int,
+        device: str,
+        dropout_rate: float = 0.25,
+        word_vec_length: int = 300
+    ):
+        super().__init__()
+        self.device = device
+        self.bigru = nn.GRU(
+            word_vec_length,     # input is each word embedding
+            word_vec_length,     # hidden representation is same size as word embeddings
+            batch_first=False,
+            bidirectional=True
+        )
+        self.bigruDropout1 = nn.Dropout(dropout_rate)
+        self.bigruDense = nn.Linear(word_vec_length * 2, rnn_dense_hidden_dim)
+        self.bigruDropout2 = nn.Dropout(dropout_rate)
+        self.bigruOutput = nn.Linear(rnn_dense_hidden_dim, 1)
+        
+    def forward(self, posts):
+        #### BiGRU recurrent layer ####################################################
+        # posts shape: batch length * num_words_per_post (ragged) * w2vlen
+        input_lengths = [seq.size(0) for seq in posts]
+        padded_input = nn.utils.rnn.pad_sequence(posts) # tensor shape (max_post_len, batch_len, w2vlen)
+        total_length = padded_input.size(0)
+        packed_input = nn.utils.rnn.pack_padded_sequence(
+            padded_input, input_lengths, batch_first=False, enforce_sorted=False
+        )
+        packed_output, _ = self.bigru(packed_input) # shape (max_post_len, batch_len, rnn_hidden_dim)
+        output, _ = nn.utils.rnn.pad_packed_sequence(
+            packed_output, batch_first=False, total_length=total_length
+        )
+        # compute max pooling along the time dimension to collapse into a single rnn_hidden_dim vector
+        rnn_embeddings = torch.max(output, dim=0).values
+        rnn_embeddings = self.bigruDropout1(rnn_embeddings)
+        #### BiGRU hidden layer #######################################################
+        rnnDenseOut = F.relu(self.bigruDense(rnn_embeddings))
+        rnnDenseOut = self.bigruDropout2(rnnDenseOut)
+        ### BiGRU output layer ########################################################
+        return torch.squeeze(self.bigruOutput(rnnDenseOut))
+    
+class textCNN(nn.Module):
+    def __init__(
+        self, 
+        cnn_dense_hidden_dim: int,
+        device: str,
+        dropout_rate: float = 0.25,
+        num_filters: int = 100,
+        kernel_sizes: List[int] = [3, 4, 5],
+        word_vec_length: int = 300
+    ):
+        super().__init__()
+        # transpose input to get N * w2vlen * L, then  ===>  N * (num_filters x w2vlen) * L'
+        self.convs = nn.ModuleList(
+            [nn.Conv1d(word_vec_length, num_filters, k) for k in kernel_sizes]
+        )
+        # Compute max pooling along the L axis (not shown here), yielding N * (num_filters x w2vlen)
+        self.cnnDropout1 = nn.Dropout(dropout_rate)
+        self.cnnDense = nn.Linear(num_filters * len(kernel_sizes), cnn_dense_hidden_dim)
+        self.cnnDropout2 = nn.Dropout(dropout_rate)
+        self.cnnOutput = nn.Linear(cnn_dense_hidden_dim, 1)
+        
+    def forward(self, posts):
+         #### Input reshaping ###########################################################
+            # N * num_words_per_seq (ragged) * w2vlen ==> N * max_seq_len * w2vlen
+        padded_input = nn.utils.rnn.pad_sequence(posts, batch_first=True) 
+            # N * max_seq_len * w2vlen ==> N * w2vlen * max_seq_len (treat word2vec dimensions as channels)
+        channelled_input = torch.transpose(padded_input, 1, 2)
+        #### CNN clf convolutional layer ###############################################
+            # Convolution: N * w2vlen * max_seq_len ==> N * num_filters * (max_seq_len - 2)
+            # Pooling: N * num_filters * (max_seq_len - 2) ==> N * num_filters
+        convOuts = [F.relu(conv(channelled_input)) for conv in self.convs]
+        pooledOuts = [torch.max(convOut, dim=2).values for convOut in convOuts]
+        pooledOut = torch.cat(pooledOuts, 1)
+        pooledOut = self.cnnDropout1(pooledOut)
+        #### CNN hidden layer ##########################################################
+        cnnDenseOut = F.relu(self.cnnDense(pooledOut))
+        cnnDenseOut = self.cnnDropout2(cnnDenseOut)
+        #### CNN output layer ##########################################################
+        return torch.squeeze(self.cnnOutput(cnnDenseOut))
+        
 class ensembleCNNBiGRU(nn.Module):
     """
     Based on:
@@ -93,82 +176,25 @@ class ensembleCNNBiGRU(nn.Module):
         super().__init__()
         self.device = device
         
-        # CNN ARCHITECTURE ##############################################################################
-        # transpose input to get N * w2vlen * L, then  ===>  N * (num_filters x w2vlen) * L'
-        self.convs = nn.ModuleList(
-            [nn.Conv1d(word_vec_length, num_filters, k) for k in kernel_sizes]
+        self.bigru = BiGRU(
+            rnn_dense_hidden_dim, 
+            device, 
+            dropout_rate, 
+            word_vec_length
         )
-        # Compute max pooling along the L axis (not shown here), yielding N * (num_filters x w2vlen)
-        self.cnnDropout1 = nn.Dropout(dropout_rate)
-        self.cnnDense = nn.Linear(num_filters * len(kernel_sizes), cnn_dense_hidden_dim)
-        self.cnnDropout2 = nn.Dropout(dropout_rate)
-        self.cnnOutput = nn.Linear(cnn_dense_hidden_dim, 1)
-        ################################################################################################
-        
-        # BiGRU ARCHITECTURE ###########################################################################
-        self.BiGRU = nn.GRU(
-            word_vec_length,     # input is each word embedding
-            word_vec_length,     # hidden representation is same size as word embeddings
-            batch_first=False,
-            bidirectional=True
+        self.cnn = textCNN(
+            cnn_dense_hidden_dim, 
+            device, 
+            dropout_rate, 
+            num_filters, 
+            kernel_sizes, 
+            word_vec_length
         )
-        self.bigruDropout1 = nn.Dropout(dropout_rate)
-        self.bigruDense = nn.Linear(word_vec_length * 2, rnn_dense_hidden_dim)
-        self.bigruDropout2 = nn.Dropout(dropout_rate)
-        self.bigruOutput = nn.Linear(rnn_dense_hidden_dim, 1)
-        ################################################################################################
-        
-        # Output Layer #################################################################################
         self.output = nn.Linear(2, 1)
-        ################################################################################################
     
     def forward(self, posts):
-        def cnnForward(l_of_seqs):
-            #### Input reshaping ###########################################################
-                # N * num_words_per_seq (ragged) * w2vlen ==> N * max_seq_len * w2vlen
-            padded_input = nn.utils.rnn.pad_sequence(l_of_seqs, batch_first=True) 
-                # N * max_seq_len * w2vlen ==> N * w2vlen * max_seq_len (treat word2vec dimensions as channels)
-            channelled_input = torch.transpose(padded_input, 1, 2)
-            #### CNN clf convolutional layer ###############################################
-                # Convolution: N * w2vlen * max_seq_len ==> N * num_filters * (max_seq_len - 2)
-                # Pooling: N * num_filters * (max_seq_len - 2) ==> N * num_filters
-            convOuts = [F.relu(conv(channelled_input)) for conv in self.convs]
-            pooledOuts = [torch.max(convOut, dim=2).values for convOut in convOuts]
-            pooledOut = torch.cat(pooledOuts, 1)
-            pooledOut = self.cnnDropout1(pooledOut)
-            #### CNN hidden layer ##########################################################
-            cnnDenseOut = F.relu(self.cnnDense(pooledOut))
-            cnnDenseOut = self.cnnDropout2(cnnDenseOut)
-            #### CNN output layer ##########################################################
-            return torch.sigmoid(self.cnnOutput(cnnDenseOut))
-        
-        def biGRUForward(l_of_seqs):
-            #### BiGRU recurrent layer ####################################################
-            # l_of_seqs shape: batch length * num_words_per_seq (ragged) * w2vlen
-            input_lengths = [seq.size(0) for seq in l_of_seqs]
-            padded_input = nn.utils.rnn.pad_sequence(l_of_seqs) # tensor shape (max_seq_len, batch_len, w2vlen)
-            total_length = padded_input.size(0)
-            packed_input = nn.utils.rnn.pack_padded_sequence(
-                padded_input, input_lengths, batch_first=False, enforce_sorted=False
-            )
-            packed_output, _ = self.BiGRU(packed_input) # shape (max_seq_len, batch_len, rnn_hidden_dim)
-            output, _ = nn.utils.rnn.pad_packed_sequence(
-                packed_output, batch_first=False, total_length=total_length
-            )
-            # compute max pooling along the time dimension to collapse into a single rnn_hidden_dim vector
-            rnn_embeddings = torch.max(output, dim=0).values
-            rnn_embeddings = self.bigruDropout1(rnn_embeddings)
-            #### BiGRU hidden layer #######################################################
-            rnnDenseOut = F.relu(self.bigruDense(rnn_embeddings))
-            rnnDenseOut = self.bigruDropout2(rnnDenseOut)
-            ### BiGRU output layer ########################################################
-            return torch.sigmoid(self.bigruOutput(rnnDenseOut))
-            
-        cnn_embeds = cnnForward(posts)    # N * 1
-        rnn_embeds = biGRUForward(posts)  # N * 1
-        
-        combined_input = torch.cat((cnn_embeds, rnn_embeds), dim=1)
-        predictionProbs = torch.squeeze(torch.sigmoid(self.output(combined_input)))
+        combined_input = torch.stack((self.cnn(posts), self.bigru(posts)), dim=1)
+        predictionProbs = torch.squeeze(self.output(combined_input))
         
         return predictionProbs
 
@@ -181,7 +207,7 @@ def calculate_loss(scores, labels, loss_fn):
     return loss_fn(scores, labels.float())
 
 def get_optimizer(net, lr, weight_decay):
-    return optimizer.Adam(net.parameters(), lr=lr)
+    return optimizer.Adam(net.parameters(), lr=lr, weight_decay = weight_decay)
 
 def get_hyper_parameters():
     cnn_dense_hidden_dim = [128, 256]
@@ -217,6 +243,9 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
             loss = calculate_loss(output, labels, loss_fn)
             loss.backward()
             optim.step()
+            
+#             for name, param in net.named_parameters():
+#                 print(name, param.grad)
             
             if num_itr % collect_cycle == 0:  # Data collection cycle
                 train_loss.append(loss.item())

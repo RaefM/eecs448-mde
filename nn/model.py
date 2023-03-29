@@ -1,6 +1,6 @@
 import time
 import copy
-from typing import List
+from typing import List, Dict
 
 from nltk.tokenize import word_tokenize, sent_tokenize
 from tqdm import tqdm
@@ -15,31 +15,33 @@ import gensim
 import numpy as np
 from sklearn.metrics import balanced_accuracy_score
 
-def get_word_embedding(embed, unk_rep, word: str):
-    return embed[word] if word in embed.key_to_index else unk_rep
+def tensor_embeds(embed):
+    return {k: torch.FloatTensor(embed[k]) for k in embed.index_to_key}
 
-def get_paragraph_embedding(embed, unk_rep, paragraph):
+def get_word_embedding(embed: Dict[str, torch.Tensor], unk_rep: torch.Tensor, word: str) -> torch.Tensor:
+    return embed[word] if word in embed else unk_rep
+
+def get_paragraph_embedding(embed: Dict[str, torch.Tensor], unk_rep: torch.Tensor, words: List[str]) -> torch.Tensor:
     return torch.vstack([
-        torch.FloatTensor(get_word_embedding(embed, unk_rep, word)) for word in word_tokenize(paragraph)
+        get_word_embedding(embed, unk_rep, word) for word in words
     ])
 
 class AITADataset(Dataset):
-    def __init__(self, posts, labels, embed):
+    def __init__(self, posts, labels, embed: Dict[str, torch.Tensor], unk: torch.Tensor):
         super().__init__()
-        unk = np.mean(embed.vectors, axis=0)
-        
-        self.data = []
-        for post, is_asshole in zip(posts, labels):
-            self.data.append({
-                'post': get_paragraph_embedding(embed, unk, post),
-                'label': is_asshole
-            })
+        self.embed = embed
+        self.unk = unk
+        self.posts = [word_tokenize(post.lower()) for post in posts]
+        self.labels = labels
     
     def __len__(self):
-        return len(self.data)
+        return len(self.labels)
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        return {
+          'post': get_paragraph_embedding(self.embed, self.unk, self.posts[idx]),
+          'label': self.labels[idx]
+        }
 
 
 def basic_collate_fn(batch):
@@ -117,13 +119,13 @@ class ensembleCNNBiGRU(nn.Module):
         ################################################################################################
         
         # Output Layer #################################################################################
-        self.output = nn.Linear(cnn_dense_hidden_dim + rnn_dense_hidden_dim, 1)
+        self.output = nn.Linear(2, 1)
         ################################################################################################
     
     def forward(self, posts):
         def cnnForward(l_of_seqs):
             #### Input reshaping ###########################################################
-                # N * num_words_per_seq (ragged) * wordveclen ==> N * max_seq_len * w2vlen
+                # N * num_words_per_seq (ragged) * w2vlen ==> N * max_seq_len * w2vlen
             padded_input = nn.utils.rnn.pad_sequence(l_of_seqs, batch_first=True) 
                 # N * max_seq_len * w2vlen ==> N * w2vlen * max_seq_len (treat word2vec dimensions as channels)
             channelled_input = torch.transpose(padded_input, 1, 2)
@@ -136,9 +138,9 @@ class ensembleCNNBiGRU(nn.Module):
             pooledOut = self.cnnDropout1(pooledOut)
             #### CNN hidden layer ##########################################################
             cnnDenseOut = F.relu(self.cnnDense(pooledOut))
-            cnnDenseOut = self.cnnDropout2(cnnDenseOut1)
+            cnnDenseOut = self.cnnDropout2(cnnDenseOut)
             #### CNN output layer ##########################################################
-            return F.sigmoid(self.cnnOutput(cnnDenseOut1))
+            return torch.sigmoid(self.cnnOutput(cnnDenseOut))
         
         def biGRUForward(l_of_seqs):
             #### BiGRU recurrent layer ####################################################
@@ -160,13 +162,13 @@ class ensembleCNNBiGRU(nn.Module):
             rnnDenseOut = F.relu(self.bigruDense(rnn_embeddings))
             rnnDenseOut = self.bigruDropout2(rnnDenseOut)
             ### BiGRU output layer ########################################################
-            return F.sigmoid(self.bigruOutput(rnn_embeddings))
+            return torch.sigmoid(self.bigruOutput(rnnDenseOut))
             
-        cnn_embeds = cnnForward(posts)    # N * cnn_dense_hidden_dim
-        rnn_embeds = biGRUForward(posts)  # N * rnn_dense_hidden_dim
+        cnn_embeds = cnnForward(posts)    # N * 1
+        rnn_embeds = biGRUForward(posts)  # N * 1
         
-        combined_input = torch.vstack((cnn_embeds, rnn_embeds))
-        predictionProbs = F.sigmoid(self.output(combined_input))
+        combined_input = torch.cat((cnn_embeds, rnn_embeds), dim=1)
+        predictionProbs = torch.squeeze(torch.sigmoid(self.output(combined_input)))
         
         return predictionProbs
 
@@ -185,7 +187,7 @@ def get_hyper_parameters():
     cnn_dense_hidden_dim = [128, 256]
     rnn_dense_hidden_dim = [256, 512]
     dropout_rate = [0.25, 0.5]
-    lr = [3e-3, 3e-4]
+    lr = [3e-2, 3e-3]
     weight_decay = [0.1, 0.01, 0]
     
     return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
@@ -205,7 +207,7 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
     for epoch in range(num_epoch):
         # Training:
         net.train()
-        for windows, labels in trn_loader:
+        for posts, labels in trn_loader:
             num_itr += 1
             posts = [post.to(device) for post in posts]
             labels = labels.to(device)
@@ -265,13 +267,13 @@ def get_validation_performance(net, loss_fn, data_loader, device):
     total_loss = [] # loss for each batch
 
     with torch.no_grad():
-        for windows, labels in data_loader:
-            windows = [[s.to(device) for s in window] for window in windows]
+        for posts, labels in data_loader:
+            posts = [post.to(device) for post in posts]
             labels = labels.to(device)
             loss = None # loss for this batch
             pred = None # predictions for this battch
 
-            scores = net(windows)
+            scores = net(posts)
             loss = calculate_loss(scores, labels, loss_fn)
             pred = torch.IntTensor(get_predictions(scores)).to(device)
 

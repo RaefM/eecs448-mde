@@ -216,11 +216,11 @@ def get_optimizer(net, lr, weight_decay):
     return optimizer.Adam(net.parameters(), lr=lr, weight_decay = weight_decay)
 
 def get_hyper_parameters():
-    cnn_dense_hidden_dim = [128, 256]
-    rnn_dense_hidden_dim = [256, 512]
-    dropout_rate = [0.5]
+    cnn_dense_hidden_dim = [256]
+    rnn_dense_hidden_dim = [256]
+    dropout_rate = [0.25, 0.5]
     lr = [3e-2, 3e-3, 3e-4]
-    weight_decay = [0.1, 0.01, 0]
+    weight_decay = [0, 0.01]
     
     return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
 
@@ -250,8 +250,8 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
             loss.backward()
             optim.step()
             
-#             for name, param in net.named_parameters():
-#                 print(name, param.grad)
+            for name, param in net.named_parameters():
+                print(name, param.grad)
             
             if num_itr % collect_cycle == 0:  # Data collection cycle
                 train_loss.append(loss.item())

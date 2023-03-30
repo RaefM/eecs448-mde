@@ -46,16 +46,16 @@ def main():
     dev_data = AITADataset(X_val, y_val, embed_tensor_dict, unk)
     test_data = AITADataset(X_test, y_test, embed_tensor_dict, unk)
     
-    train_loader = DataLoader(train_data, batch_size=16, collate_fn=basic_collate_fn, shuffle=True)
-    dev_loader = DataLoader(dev_data, batch_size=16, collate_fn=basic_collate_fn, shuffle=True)
-    test_loader = DataLoader(test_data, batch_size=16, collate_fn=basic_collate_fn, shuffle=False)
+    train_loader = DataLoader(train_data, batch_size=128, collate_fn=basic_collate_fn, shuffle=True)
+    dev_loader = DataLoader(dev_data, batch_size=128, collate_fn=basic_collate_fn, shuffle=True)
+    test_loader = DataLoader(test_data, batch_size=128, collate_fn=basic_collate_fn, shuffle=False)
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     print(f"Done! Operating on {device}!")
     
     print("@@@@@@@@@@@@@@@@@@@@@\n@@@@ EVALUATING HYPERPARAMETERS\n@@@@@@@@@@@@@@@@@@@@@")
-    cnn_dense_hidden_dim, _, dropout_rate, lr, weight_decay = get_hyper_parameters()
+    cnn_dense_hidden_dim, _, dropout_rate, lr, weight_decay = [300], [], [0], [0.08, 0.03, 0.003], [0]
     total_comb = len(cnn_dense_hidden_dim) * len(dropout_rate) * len(lr) * len(weight_decay)
     print("CNN Hidden Size from: {}\nLearning Rate from: {}\nWeight Decay from: {}\nDropout Rate from: {}".format(
         cnn_dense_hidden_dim, lr, weight_decay, dropout_rate
@@ -69,7 +69,7 @@ def main():
         net = textCNN(cnn_hd, device, dr).to(device)
         optim = get_optimizer(net, lr=lr, weight_decay=wd)
         model, stats = train_model(net, train_loader, dev_loader, optim, num_epoch=100,
-                                   collect_cycle=500, device=device, verbose=True, patience=10)
+                                   collect_cycle=500, device=device, verbose=True, patience=20)
         # print accuracy
         print(f"Completed {(cnn_hd, dr, lr, wd)}: {stats['accuracy']}")
         # update best parameters if needed

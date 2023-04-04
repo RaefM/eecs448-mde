@@ -13,7 +13,7 @@ import torch.optim as optimizer
 import matplotlib.pyplot as plt
 import gensim
 import numpy as np
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, accuracy_score
 
 def tensor_embeds(embed):
     return {k: torch.FloatTensor(embed[k]) for k in embed.index_to_key}
@@ -215,9 +215,9 @@ def get_optimizer(net, lr, weight_decay):
 def get_hyper_parameters():
     cnn_dense_hidden_dim = [256]
     rnn_dense_hidden_dim = [512]
-    dropout_rate = [0, 0.25]
-    lr = [5e-2, 1e-2]
-    weight_decay = [0, 0.001]
+    dropout_rate = [0, 0.1, 0.25]
+    lr = [1e-2]
+    weight_decay = [0, 0.001, 0.01]
     
     return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
 
@@ -226,7 +226,7 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
         device='cpu', verbose=True, patience=8, stopping_criteria='loss', pos_weight=None):
     train_loss, train_loss_ind, val_loss, val_loss_ind = [], [], [], []
     num_itr = 0
-    best_model, best_accuracy = None, 0
+    best_model, best_uar = None, 0
 
     loss_fn = nn.BCEWithLogitsLoss() if pos_weight is None else nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     early_stopper = EarlyStopperLoss(patience) if stopping_criteria == 'loss' else EarlyStopperAcc(patience)
@@ -261,15 +261,16 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
                 ))
 
         # Validation:
-        accuracy, loss = get_validation_performance(net, loss_fn, val_loader, device)
+        uar, accuracy, loss = get_validation_performance(net, loss_fn, val_loader, device)
         val_loss.append(loss)
         val_loss_ind.append(num_itr)
         if verbose:
+            print("Validation UAR: {:.4f}".format(uar))
             print("Validation accuracy: {:.4f}".format(accuracy))
             print("Validation loss: {:.4f}".format(loss))
-        if accuracy > best_accuracy:
+        if uar > best_uar:
             best_model = copy.deepcopy(net)
-            best_accuracy = accuracy
+            best_uar = uar
         if patience is not None and early_stopper.early_stop(
             loss if stopping_criteria == 'loss' else accuracy
         ):
@@ -283,7 +284,7 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
              'train_loss_ind': train_loss_ind,
              'val_loss': val_loss,
              'val_loss_ind': val_loss_ind,
-             'accuracy': best_accuracy,
+             'accuracy': best_uar,
     }
 
     return best_model, stats
@@ -316,10 +317,11 @@ def get_validation_performance(net, loss_fn, data_loader, device):
     
     y_true = torch.cat(y_true)
     y_pred = torch.cat(y_pred)
-    accuracy = balanced_accuracy_score(y_true, y_pred)
+    uar = balanced_accuracy_score(y_true, y_pred)
+    accuracy = accuracy_score(y_true, y_pred)
     total_loss = sum(total_loss) / len(total_loss)
     
-    return accuracy, total_loss
+    return uar, accuracy, total_loss
 
 
 def plot_loss(stats, display=True):

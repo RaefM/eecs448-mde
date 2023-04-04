@@ -59,7 +59,9 @@ def main():
     for y in y_train:
         counts[y] += 1
 
-    pos_weight = counts[0] / counts[1]
+    pos_weight = torch.Tensor([counts[0] / counts[1]]).to(device)
+    
+    print(f"Weighting positive samples {pos_weight} times more than negative ones")
     
     cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay = get_hyper_parameters()
     total_comb = len(cnn_dense_hidden_dim) * len(rnn_dense_hidden_dim) * len(dropout_rate) * len(lr) * len(weight_decay)

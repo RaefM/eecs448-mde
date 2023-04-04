@@ -46,15 +46,21 @@ def main():
     dev_data = AITADataset(X_val, y_val, embed_tensor_dict, unk)
     test_data = AITADataset(X_test, y_test, embed_tensor_dict, unk)
     
-    train_loader = DataLoader(train_data, batch_size=16, collate_fn=basic_collate_fn, shuffle=True)
-    dev_loader = DataLoader(dev_data, batch_size=16, collate_fn=basic_collate_fn, shuffle=True)
-    test_loader = DataLoader(test_data, batch_size=16, collate_fn=basic_collate_fn, shuffle=False)
+    train_loader = DataLoader(train_data, batch_size=64, collate_fn=basic_collate_fn, shuffle=True)
+    dev_loader = DataLoader(dev_data, batch_size=64, collate_fn=basic_collate_fn, shuffle=True)
+    test_loader = DataLoader(test_data, batch_size=64, collate_fn=basic_collate_fn, shuffle=False)
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     print(f"Done! Operating on {device}!")
     
     print("@@@@@@@@@@@@@@@@@@@@@\n@@@@ EVALUATING HYPERPARAMETERS\n@@@@@@@@@@@@@@@@@@@@@")
+    counts = [0, 0]
+    for y in y_train:
+        counts[y] += 1
+
+    pos_weight = counts[0] / counts[1]
+    
     cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay = get_hyper_parameters()
     total_comb = len(cnn_dense_hidden_dim) * len(rnn_dense_hidden_dim) * len(dropout_rate) * len(lr) * len(weight_decay)
     print("CNN Hidden Size from: {}\n RNN Hidden Size from: {}\nLearning Rate from: {}\nWeight Decay from: {}\nDropout Rate from: {}".format(
@@ -69,7 +75,8 @@ def main():
         net = ensembleCNNBiGRU(cnn_hd, rnn_hd, device, dr).to(device)
         optim = get_optimizer(net, lr=lr, weight_decay=wd)
         model, stats = train_model(net, train_loader, dev_loader, optim, num_epoch=100,
-                                   collect_cycle=500, device=device, verbose=True, patience=10)
+                                   collect_cycle=500, device=device, verbose=True, 
+                                   patience=10, pos_weight=pos_weight)
         # print accuracy
         print(f"Completed {(cnn_hd, rnn_hd, dr, lr, wd)}: {stats['accuracy']}")
         # update best parameters if needed

@@ -207,9 +207,6 @@ class ensembleCNNBiGRU(nn.Module):
 #########################################################################
 
 def calculate_loss(scores, labels, loss_fn):
-    if (scores.shape != labels.shape):
-        print(scores)
-        print(labels)
     return loss_fn(scores, labels.float())
 
 def get_optimizer(net, lr, weight_decay):
@@ -217,21 +214,21 @@ def get_optimizer(net, lr, weight_decay):
 
 def get_hyper_parameters():
     cnn_dense_hidden_dim = [256]
-    rnn_dense_hidden_dim = [256]
-    dropout_rate = [0.25, 0.5]
-    lr = [3e-2, 3e-3, 3e-4]
-    weight_decay = [0, 0.01]
+    rnn_dense_hidden_dim = [512]
+    dropout_rate = [0, 0.25]
+    lr = [5e-2, 1e-2]
+    weight_decay = [0, 0.001]
     
     return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
 
 
 def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=30,
-        device='cpu', verbose=True, patience=8, stopping_criteria='loss'):
+        device='cpu', verbose=True, patience=8, stopping_criteria='loss', pos_weight=None):
     train_loss, train_loss_ind, val_loss, val_loss_ind = [], [], [], []
     num_itr = 0
     best_model, best_accuracy = None, 0
 
-    loss_fn = nn.BCEWithLogitsLoss()
+    loss_fn = nn.BCEWithLogitsLoss() if pos_weight is None else nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     early_stopper = EarlyStopperLoss(patience) if stopping_criteria == 'loss' else EarlyStopperAcc(patience)
     if verbose:
         print('------------------------ Start Training ------------------------')
@@ -250,8 +247,8 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
             loss.backward()
             optim.step()
             
-            for name, param in net.named_parameters():
-                print(name, param.grad)
+#             for name, param in net.named_parameters():
+#                 print(name, param.grad)
             
             if num_itr % collect_cycle == 0:  # Data collection cycle
                 train_loss.append(loss.item())

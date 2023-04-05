@@ -1,0 +1,446 @@
+[maroofr@gl1013 ~]$ source env/bin/activate
+(env) [maroofr@gl1013 ~]$ cd eecs448-mde/nn
+(env) [maroofr@gl1013 nn]$ ls
+aita_minimal_preprocess.csv     best_textcnn.pt          gridsearchEnsembleNN.py  model.ipynb        __pycache__
+best_ensemble_nn_pre_change.pt  glove300.kv              gridsearchNN.py          model.py           textGridLog.txt
+best_ensemble_nn.pt             glove300.kv.vectors.npy  gridsearchTextCNN.py     newdrivestuff.zip
+(env) [maroofr@gl1013 nn]$ python3 gridsearchEnsembleNN.py \
+> ^C
+(env) [maroofr@gl1013 nn]$ python3 gridsearchEnsembleNN.py
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ READING DATAFRAMES AND GLOVE
+@@@@@@@@@@@@@@@@@@@@@
+/home/maroofr/eecs448-mde/nn/model.py:19: UserWarning: The given NumPy array is not writeable, and PyTorch does not support non-writeable tensors. This means you can write to the underlying (supposedly non-writeable) NumPy array using the tensor. You may want to copy the array to protect its data or make it writeable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at  ../torch/csrc/utils/tensor_numpy.cpp:189.)
+  return {k: torch.FloatTensor(embed[k]) for k in embed.index_to_key}
+Done!
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ CREATING DATASETS AND LOADERS
+@@@@@@@@@@@@@@@@@@@@@
+Done! Operating on cuda!
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ EVALUATING HYPERPARAMETERS
+@@@@@@@@@@@@@@@@@@@@@
+Weighting positive samples tensor([2.6825], device='cuda:0') times more than negative ones
+CNN Hidden Size from: [256]
+ RNN Hidden Size from: [512]
+Learning Rate from: [0.01, 0.005]
+Weight Decay from: [0, 0.001]
+Dropout Rate from: [0, 0.1, 0.25]
+  0%|          | 0/12 [00:00<?, ?it/s]
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.1478
+Validation UAR: 0.5787
+Validation accuracy: 0.6295
+Validation loss: 0.9817
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.9646
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0109
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.0397
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0093
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.9049
+Validation UAR: 0.5320
+Validation accuracy: 0.3360
+Validation loss: 1.0088
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.7448
+Validation UAR: 0.5728
+Validation accuracy: 0.6666
+Validation loss: 0.9964
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.8961
+Validation UAR: 0.5919
+Validation accuracy: 0.6427
+Validation loss: 0.9757
+Epoch No. 7--Iteration No. 6839-- batch loss = 0.8909
+Validation UAR: 0.5756
+Validation accuracy: 0.4657
+Validation loss: 1.0116
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.6251
+Validation UAR: 0.5829
+Validation accuracy: 0.6059
+Validation loss: 1.1517
+Epoch No. 9--Iteration No. 8793-- batch loss = 0.4698
+Validation UAR: 0.5778
+Validation accuracy: 0.5874
+Validation loss: 1.2530
+Epoch No. 10--Iteration No. 9770-- batch loss = 0.4721
+Validation UAR: 0.5694
+Validation accuracy: 0.6244
+Validation loss: 1.6710
+Epoch No. 11--Iteration No. 10747-- batch loss = 0.6140
+Validation UAR: 0.5566
+Validation accuracy: 0.6677
+Validation loss: 2.3152
+Epoch No. 12--Iteration No. 11724-- batch loss = 0.1494
+Validation UAR: 0.5642
+Validation accuracy: 0.6251
+Validation loss: 2.0761
+Epoch No. 13--Iteration No. 12701-- batch loss = 0.3754
+Validation UAR: 0.5625
+Validation accuracy: 0.6201
+Validation loss: 2.5614
+Training lasted 46.28 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0, 0.01, 0): 0.5919034269062852
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.2413
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0095
+Epoch No. 2--Iteration No. 1954-- batch loss = 1.0371
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0087
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.2457
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0095
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.8092
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0097
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.8997
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0113
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.8256
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0087
+Epoch No. 7--Iteration No. 6839-- batch loss = 0.9674
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0104
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.9656
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0097
+Epoch No. 9--Iteration No. 8793-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 10--Iteration No. 9770-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 11--Iteration No. 10747-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 12--Iteration No. 11724-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 13--Iteration No. 12701-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+^CTraceback (most recent call last):
+  File "gridsearchEnsembleNN.py", line 101, in <module>
+    main()
+  File "gridsearchEnsembleNN.py", line 81, in main
+    patience=7, pos_weight=pos_weight)
+  File "/home/maroofr/eecs448-mde/nn/model.py", line 239, in train_model
+    for posts, labels in trn_loader:
+  File "/home/maroofr/env/lib64/python3.6/site-packages/torch/utils/data/dataloader.py", line 521, in __next__
+    data = self._next_data()
+  File "/home/maroofr/env/lib64/python3.6/site-packages/torch/utils/data/dataloader.py", line 561, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "/home/maroofr/env/lib64/python3.6/site-packages/torch/utils/data/_utils/fetch.py", line 49, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/maroofr/env/lib64/python3.6/site-packages/torch/utils/data/_utils/fetch.py", line 49, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/maroofr/eecs448-mde/nn/model.py", line 42, in __getitem__
+    'post': get_paragraph_embedding(self.embed, self.unk, self.posts[idx]),
+  File "/home/maroofr/eecs448-mde/nn/model.py", line 26, in get_paragraph_embedding
+    get_word_embedding(embed, unk_rep, word) for word in words
+KeyboardInterrupt
+(env) [maroofr@gl1013 nn]$ nano model.py 
+(env) [maroofr@gl1013 nn]$ nano gridsearchEnsembleNN.py 
+(env) [maroofr@gl1013 nn]$ nano model.py 
+(env) [maroofr@gl1013 nn]$ nano gridsearchEnsembleNN.py 
+(env) [maroofr@gl1013 nn]$ python3 gridsearchEnsembleNN.py
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ READING DATAFRAMES AND GLOVE
+@@@@@@@@@@@@@@@@@@@@@
+/home/maroofr/eecs448-mde/nn/model.py:19: UserWarning: The given NumPy array is not writeable, and PyTorch does not support non-writeable tensors. This means you can write to the underlying (supposedly non-writeable) NumPy array using the tensor. You may want to copy the array to protect its data or make it writeable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at  ../torch/csrc/utils/tensor_numpy.cpp:189.)
+  return {k: torch.FloatTensor(embed[k]) for k in embed.index_to_key}
+Done!
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ CREATING DATASETS AND LOADERS
+@@@@@@@@@@@@@@@@@@@@@
+Done! Operating on cuda!
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ EVALUATING HYPERPARAMETERS
+@@@@@@@@@@@@@@@@@@@@@
+Weighting positive samples tensor([2.6825], device='cuda:0') times more than negative ones
+CNN Hidden Size from: [256]
+ RNN Hidden Size from: [512]
+Learning Rate from: [0.01, 0.005]
+Weight Decay from: [0]
+Dropout Rate from: [0, 0.1, 0.25]
+  0%|          | 0/6 [00:00<?, ?it/s]
+Currently assessing cnn hidden 256, rnn hidden 512, drop rate 0, learn rate 0.01 and weight dec 0
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.2639
+Validation UAR: 0.5752
+Validation accuracy: 0.4965
+Validation loss: 0.9852
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.9861
+Validation UAR: 0.5862
+Validation accuracy: 0.5063
+Validation loss: 0.9749
+Epoch No. 3--Iteration No. 2931-- batch loss = 0.9598
+Validation UAR: 0.5808
+Validation accuracy: 0.4607
+Validation loss: 0.9892
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.9064
+Validation UAR: 0.5818
+Validation accuracy: 0.6718
+Validation loss: 1.0997
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.8872
+Validation UAR: 0.5810
+Validation accuracy: 0.5470
+Validation loss: 1.0933
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.8360
+Validation UAR: 0.5792
+Validation accuracy: 0.5659
+Validation loss: 1.2227
+Epoch No. 7--Iteration No. 6839-- batch loss = 0.6267
+Validation UAR: 0.5732
+Validation accuracy: 0.6181
+Validation loss: 1.5280
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.9434
+Validation UAR: 0.5672
+Validation accuracy: 0.6413
+Validation loss: 1.9917
+Epoch No. 9--Iteration No. 8793-- batch loss = 0.4829
+Validation UAR: 0.5702
+Validation accuracy: 0.5854
+Validation loss: 1.9948
+Training lasted 31.73 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0, 0.01, 0): 0.5862407462169139
+Currently assessing cnn hidden 256, rnn hidden 512, drop rate 0, learn rate 0.005 and weight dec 0
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.0457
+Validation UAR: 0.5734
+Validation accuracy: 0.6622
+Validation loss: 0.9842
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.7627
+Validation UAR: 0.5972
+Validation accuracy: 0.5856
+Validation loss: 0.9700
+Epoch No. 3--Iteration No. 2931-- batch loss = 0.9286
+Validation UAR: 0.5857
+Validation accuracy: 0.4990
+Validation loss: 0.9765
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.7000
+Validation UAR: 0.5881
+Validation accuracy: 0.5985
+Validation loss: 1.0292
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.7324
+Validation UAR: 0.5768
+Validation accuracy: 0.5988
+Validation loss: 1.1698
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.5561
+Validation UAR: 0.5736
+Validation accuracy: 0.5817
+Validation loss: 1.3714
+Training lasted 21.16 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0, 0.005, 0): 0.5972132776909946
+Currently assessing cnn hidden 256, rnn hidden 512, drop rate 0.1, learn rate 0.01 and weight dec 0
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.9904
+Validation UAR: 0.5134
+Validation accuracy: 0.3417
+Validation loss: 1.0091
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.8433
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0097
+Epoch No. 3--Iteration No. 2931-- batch loss = 0.9657
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0097
+Epoch No. 4--Iteration No. 3908-- batch loss = 1.1568
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0120
+Epoch No. 5--Iteration No. 4885-- batch loss = 1.0349
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0106
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.8444
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0099
+Epoch No. 7--Iteration No. 6839-- batch loss = 1.0342
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0104
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.8245
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0115
+Training lasted 28.20 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.1, 0.01, 0): 0.5133686299969683
+Currently assessing cnn hidden 256, rnn hidden 512, drop rate 0.1, learn rate 0.005 and weight dec 0
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.9512
+Validation UAR: 0.5737
+Validation accuracy: 0.6502
+Validation loss: 0.9831
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.9030
+Validation UAR: 0.5937
+Validation accuracy: 0.5333
+Validation loss: 0.9700
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.0251
+Validation UAR: 0.5968
+Validation accuracy: 0.6165
+Validation loss: 0.9798
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.7653
+Validation UAR: 0.5884
+Validation accuracy: 0.5427
+Validation loss: 0.9819
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.6574
+Validation UAR: 0.5746
+Validation accuracy: 0.5802
+Validation loss: 1.1041
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.6838
+Validation UAR: 0.5682
+Validation accuracy: 0.6422
+Validation loss: 1.2528
+Training lasted 21.13 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.1, 0.005, 0): 0.5967755809138973
+Currently assessing cnn hidden 256, rnn hidden 512, drop rate 0.25, learn rate 0.01 and weight dec 0
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 2--Iteration No. 1954-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 3--Iteration No. 2931-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 4--Iteration No. 3908-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 5--Iteration No. 4885-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Epoch No. 6--Iteration No. 5862-- batch loss = nan
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: nan
+Training lasted 21.13 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.25, 0.01, 0): 0.5
+Currently assessing cnn hidden 256, rnn hidden 512, drop rate 0.25, learn rate 0.005 and weight dec 0
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.0996
+Validation UAR: 0.5859
+Validation accuracy: 0.5651
+Validation loss: 0.9879
+Epoch No. 2--Iteration No. 1954-- batch loss = 1.0404
+Validation UAR: 0.5884
+Validation accuracy: 0.5349
+Validation loss: 0.9726
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.2068
+Validation UAR: 0.5952
+Validation accuracy: 0.5655
+Validation loss: 0.9660
+Epoch No. 4--Iteration No. 3908-- batch loss = 1.1924
+Validation UAR: 0.5906
+Validation accuracy: 0.6162
+Validation loss: 0.9694
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.8201
+Validation UAR: 0.5898
+Validation accuracy: 0.5617
+Validation loss: 0.9772
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.6804
+Validation UAR: 0.5802
+Validation accuracy: 0.6034
+Validation loss: 1.0496
+Epoch No. 7--Iteration No. 6839-- batch loss = 0.5609
+Validation UAR: 0.5654
+Validation accuracy: 0.6185
+Validation loss: 1.0754
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.6431
+Validation UAR: 0.5638
+Validation accuracy: 0.5723
+Validation loss: 1.1613
+Epoch No. 9--Iteration No. 8793-- batch loss = 0.4613
+Validation UAR: 0.5569
+Validation accuracy: 0.6143
+Validation loss: 1.2572
+Epoch No. 10--Iteration No. 9770-- batch loss = 0.7940
+Validation UAR: 0.5533
+Validation accuracy: 0.6185
+Validation loss: 1.5117
+Epoch No. 11--Iteration No. 10747-- batch loss = 0.4021
+Validation UAR: 0.5524
+Validation accuracy: 0.6012
+Validation loss: 1.3411
+Epoch No. 12--Iteration No. 11724-- batch loss = 0.2161
+Validation UAR: 0.5503
+Validation accuracy: 0.6007
+Validation loss: 1.5052
+Training lasted 42.25 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.25, 0.005, 0): 0.5952005250994008
+
+
+Best cnn hidden: 256, Best rnn hidden: 512, Best weight_decay: 0, Best lr: 0.005, Best dropout: 0
+Accuracy: 0.5972
+/home/maroofr/env/lib64/python3.6/site-packages/torch/nn/modules/rnn.py:853: UserWarning: RNN module weights are not part of single contiguous chunk of memory. This means they need to be compacted at every call, possibly greatly increasing memory usage. To compact weights again call flatten_parameters(). (Triggered internally at  ../aten/src/ATen/native/cudnn/RNN.cpp:925.)
+  self.num_layers, self.dropout, self.training, self.bidirectional)
+Traceback (most recent call last):
+  File "gridsearchEnsembleNN.py", line 102, in <module>
+    main()
+  File "gridsearchEnsembleNN.py", line 97, in main
+    test_accuracy, test_total_loss = get_validation_performance(best_model, loss_fn, test_loader, device) 
+ValueError: too many values to unpack (expected 2)
+(env) [maroofr@gl1013 nn]$ ls
+aita_minimal_preprocess.csv     best_nn_loss.png  glove300.kv.vectors.npy  gridsearchTextCNN.py  newdrivestuff.zip
+best_ensemble_nn_pre_change.pt  best_textcnn.pt   gridsearchEnsembleNN.py  model.ipynb           __pycache__
+best_ensemble_nn.pt             glove300.kv       gridsearchNN.py          model.py              textGridLog.txt
+(env) [maroofr@gl1013 nn]$ git add best_ensemble_nn.pt
+(env) [maroofr@gl1013 nn]$ git commit -m "final selection for ensemble cnn: rnn hid = 512, cnn hid = 256, wd = 0, dr = 0, lr = 0.005"
+[main c2d9ca5] final selection for ensemble cnn: rnn hid = 512, cnn hid = 256, wd = 0, dr = 0, lr = 0.005
+ Committer: Raef Syed Maroof <maroofr@gl1013.arc-ts.umich.edu>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 nn/best_ensemble_nn.pt
+(env) [maroofr@gl1013 nn]$ git push
+Enumerating objects: 6, done.
+Counting objects: 100% (6/6), done.
+Delta compression using up to 40 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 6.48 MiB | 10.32 MiB/s, done.
+Total 4 (delta 2), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/RaefM/eecs448-mde.git
+   3d76133..c2d9ca5  main -> main
+(env) [maroofr@gl1013 nn]$ 

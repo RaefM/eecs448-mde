@@ -100,11 +100,12 @@ def main():
         itertools.product(cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay),
         total=total_comb
     ):
+        print(f"\nBeginning assessing cnn hidden {cnn_hd}, rnn hidden {rnn_hd}, drop rate {dr}, learn rate {lr} and weight dec {wd}")
         net = get_model(model_type)
         optim = get_optimizer(net, lr=lr, weight_decay=wd)
         model, stats = train_model(net, train_loader, dev_loader, optim, num_epoch=100,
                                    collect_cycle=500, device=device, verbose=True, 
-                                   patience=10, pos_weight=pos_weight)
+                                   patience=5, pos_weight=pos_weight, stopping_criteria='accuracy')
         # print accuracy
         print(f"Completed {(cnn_hd, rnn_hd, dr, lr, wd)}: {stats['accuracy']}")
         # update best parameters if needed

@@ -18,10 +18,13 @@ Saves best model it finds to best_<model_type>_nn.pt
 
 def get_model(model_type, device, dr, cnn_hd = None, rnn_hd = None):
     if model_type == "ensemble":
+        print("Creating ensemble classifier of textCNN and biGRU")
         return ensembleCNNBiGRU(cnn_hd, rnn_hd, device, dr).to(device)
     elif model_type == "cnn":
+        print("Creating textCNN classifier")
         return textCNN(cnn_hd, device, dr).to(device)
     elif model_type == "bigru":
+        print("Creating a biGRU classifier")
         return BiGRU(rnn_hd, device, dr).to(device)
     else:
         print("ERROR: Unrecognized model type!")
@@ -35,6 +38,7 @@ def main():
     if n == 1:
         print("No model type specified; assuming ensemble")
     elif n == 2:
+        print(f"Training {sys.argv[1]} type model") 
         model_type = sys.argv[1]
     else:
         print("ERROR: Too many arguments")
@@ -101,7 +105,7 @@ def main():
         total=total_comb
     ):
         print(f"\nBeginning assessing cnn hidden {cnn_hd}, rnn hidden {rnn_hd}, drop rate {dr}, learn rate {lr} and weight dec {wd}")
-        net = get_model(model_type)
+        net = get_model(model_type, device, dr, cnn_hd, rnn_hd)
         optim = get_optimizer(net, lr=lr, weight_decay=wd)
         model, stats = train_model(net, train_loader, dev_loader, optim, num_epoch=100,
                                    collect_cycle=500, device=device, verbose=True, 

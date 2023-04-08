@@ -352,7 +352,7 @@ class EarlyStopperAcc:
             self.iters_staying_same += 1
             if self.iters_staying_same >= self.patience * 10:
                 return True
-        elif curr_loss < self.min_loss:
+        elif curr_acc < self.max_acc:
             self.iters_below += 1
             self.iters_staying_same += 1
             if self.iters_below >= self.patience or self.iters_staying_same >= self.patience * 10:

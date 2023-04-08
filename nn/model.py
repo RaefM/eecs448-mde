@@ -216,8 +216,8 @@ def get_hyper_parameters():
     cnn_dense_hidden_dim = [256]
     rnn_dense_hidden_dim = [512]
     dropout_rate = [0, 0.1, 0.25]
-    lr = [1e-2]
-    weight_decay = [0, 0.001, 0.01]
+    lr = [1e-2, 5e-3]
+    weight_decay = [0]
     
     return cnn_dense_hidden_dim, rnn_dense_hidden_dim, dropout_rate, lr, weight_decay
 
@@ -245,6 +245,7 @@ def train_model(net, trn_loader, val_loader, optim, num_epoch=50, collect_cycle=
             output = net(posts)
             loss = calculate_loss(output, labels, loss_fn)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(net.parameters(), 5)
             optim.step()
             
 #             for name, param in net.named_parameters():
@@ -340,22 +341,15 @@ class EarlyStopperAcc:
     def __init__(self, patience=5):
         self.patience = patience
         self.iters_below = 0
-        self.iters_staying_same = 0
         self.max_acc = -float("inf")
 
     def early_stop(self, curr_acc):
         if curr_acc > self.max_acc:
             self.max_acc = curr_acc
             self.iters_below = 0
-            self.iters_staying_same = 0
-        elif curr_acc == self.max_acc:
-            self.iters_staying_same += 1
-            if self.iters_staying_same >= self.patience * 10:
-                return True
-        elif curr_loss < self.min_loss:
+        else:
             self.iters_below += 1
-            self.iters_staying_same += 1
-            if self.iters_below >= self.patience or self.iters_staying_same >= self.patience * 10:
+            if self.iters_below >= self.patience:
                 return True
         return False
 

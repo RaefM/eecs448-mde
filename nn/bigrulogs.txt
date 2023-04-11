@@ -1,0 +1,376 @@
+[maroofr@gl1022 ~]$ source env/bin/activate
+(env) [maroofr@gl1022 ~]$ cd eecs448-mde/nn/
+(env) [maroofr@gl1022 nn]$ python3 gridsearchNN.py bigru
+Total arguments passed: 2
+Training bigru type model
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ READING DATAFRAMES AND GLOVE
+@@@@@@@@@@@@@@@@@@@@@
+/home/maroofr/eecs448-mde/nn/model.py:19: UserWarning: The given NumPy array is not writeable, and PyTorch does not support non-writeable tensors. This means you can write to the underlying (supposedly non-writeable) NumPy array using the tensor. You may want to copy the array to protect its data or make it writeable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at  ../torch/csrc/utils/tensor_numpy.cpp:189.)
+  return {k: torch.FloatTensor(embed[k]) for k in embed.index_to_key}
+Done!
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ CREATING DATASETS AND LOADERS
+@@@@@@@@@@@@@@@@@@@@@
+Done! Operating on cuda!
+@@@@@@@@@@@@@@@@@@@@@
+@@@@ EVALUATING HYPERPARAMETERS
+@@@@@@@@@@@@@@@@@@@@@
+Weighting positive samples tensor([2.6825], device='cuda:0') times more than negative ones
+CNN Hidden Size from: [256]
+ RNN Hidden Size from: [512]
+Learning Rate from: [0.01, 0.005, 0.001]
+Weight Decay from: [0]
+Dropout Rate from: [0, 0.1, 0.25]
+  0%|          | 0/9 [00:00<?, ?it/s]
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0, learn rate 0.01 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.8862
+Validation UAR: 0.4986
+Validation accuracy: 0.7192
+Validation loss: 1.1269
+Epoch No. 2--Iteration No. 1954-- batch loss = 1.5524
+Validation UAR: 0.5012
+Validation accuracy: 0.2797
+Validation loss: 1.0642
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.2186
+Validation UAR: 0.5004
+Validation accuracy: 0.2728
+Validation loss: 1.0746
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.7565
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.1274
+Epoch No. 5--Iteration No. 4885-- batch loss = 1.1615
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0340
+Epoch No. 6--Iteration No. 5862-- batch loss = 1.0761
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0698
+Epoch No. 7--Iteration No. 6839-- batch loss = 1.1126
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0492
+Training lasted 24.73 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0, 0.01, 0): 0.5012186833161113
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0, learn rate 0.005 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.6103
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.4788
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.7047
+Validation UAR: 0.5003
+Validation accuracy: 0.7258
+Validation loss: 1.1426
+Epoch No. 3--Iteration No. 2931-- batch loss = 0.9103
+Validation UAR: 0.5270
+Validation accuracy: 0.7018
+Validation loss: 1.0169
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.9732
+Validation UAR: 0.4999
+Validation accuracy: 0.2716
+Validation loss: 1.1090
+Epoch No. 5--Iteration No. 4885-- batch loss = 1.0392
+Validation UAR: 0.4999
+Validation accuracy: 0.2716
+Validation loss: 1.1213
+Epoch No. 6--Iteration No. 5862-- batch loss = 1.0260
+Validation UAR: 0.5383
+Validation accuracy: 0.4239
+Validation loss: 1.0054
+Epoch No. 7--Iteration No. 6839-- batch loss = 1.1496
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.1823
+Epoch No. 8--Iteration No. 7816-- batch loss = 1.0770
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0793
+Epoch No. 9--Iteration No. 8793-- batch loss = 1.0591
+Validation UAR: 0.5000
+Validation accuracy: 0.2717
+Validation loss: 1.0571
+Epoch No. 10--Iteration No. 9770-- batch loss = 0.9615
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0118
+Epoch No. 11--Iteration No. 10747-- batch loss = 1.2038
+Validation UAR: 0.5003
+Validation accuracy: 0.2721
+Validation loss: 1.0122
+Training lasted 38.80 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0, 0.005, 0): 0.5382948787892234
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0, learn rate 0.001 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.8026
+Validation UAR: 0.5926
+Validation accuracy: 0.6397
+Validation loss: 0.9702
+Epoch No. 2--Iteration No. 1954-- batch loss = 1.0440
+Validation UAR: 0.6039
+Validation accuracy: 0.5489
+Validation loss: 0.9666
+Epoch No. 3--Iteration No. 2931-- batch loss = 0.7389
+Validation UAR: 0.6007
+Validation accuracy: 0.6408
+Validation loss: 0.9620
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.7328
+Validation UAR: 0.6007
+Validation accuracy: 0.6537
+Validation loss: 0.9771
+Epoch No. 5--Iteration No. 4885-- batch loss = 1.1202
+Validation UAR: 0.5909
+Validation accuracy: 0.6357
+Validation loss: 0.9935
+Epoch No. 6--Iteration No. 5862-- batch loss = 1.4488
+Validation UAR: 0.5840
+Validation accuracy: 0.6131
+Validation loss: 1.0517
+Epoch No. 7--Iteration No. 6839-- batch loss = 1.0120
+Validation UAR: 0.5859
+Validation accuracy: 0.6003
+Validation loss: 1.0765
+Training lasted 24.68 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0, 0.001, 0): 0.603854491132515
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0.1, learn rate 0.01 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.6935
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.5193
+Epoch No. 2--Iteration No. 1954-- batch loss = 1.1050
+Validation UAR: 0.5004
+Validation accuracy: 0.2797
+Validation loss: 1.0376
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.2348
+Validation UAR: 0.5010
+Validation accuracy: 0.2799
+Validation loss: 1.0499
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.9059
+Validation UAR: 0.5001
+Validation accuracy: 0.2722
+Validation loss: 1.0170
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.7211
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0898
+Epoch No. 6--Iteration No. 5862-- batch loss = 1.1494
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0249
+Epoch No. 7--Iteration No. 6839-- batch loss = 0.9584
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.1414
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.9237
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.2936
+Training lasted 28.14 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.1, 0.01, 0): 0.5009508756608025
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0.1, learn rate 0.005 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.8495
+Validation UAR: 0.4996
+Validation accuracy: 0.7272
+Validation loss: 1.0633
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.9507
+Validation UAR: 0.5227
+Validation accuracy: 0.7146
+Validation loss: 1.0093
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.0580
+Validation UAR: 0.5409
+Validation accuracy: 0.6855
+Validation loss: 1.0014
+Epoch No. 4--Iteration No. 3908-- batch loss = 1.1704
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.1436
+Epoch No. 5--Iteration No. 4885-- batch loss = 1.2224
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0427
+Epoch No. 6--Iteration No. 5862-- batch loss = 1.0849
+Validation UAR: 0.5000
+Validation accuracy: 0.7281
+Validation loss: 1.0293
+Epoch No. 7--Iteration No. 6839-- batch loss = 1.8770
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.3425
+Epoch No. 8--Iteration No. 7816-- batch loss = 1.1694
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.1960
+Training lasted 28.22 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.1, 0.005, 0): 0.5408956397880759
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0.1, learn rate 0.001 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.1206
+Validation UAR: 0.5827
+Validation accuracy: 0.6835
+Validation loss: 0.9787
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.8825
+Validation UAR: 0.6026
+Validation accuracy: 0.5869
+Validation loss: 0.9617
+Epoch No. 3--Iteration No. 2931-- batch loss = 0.7591
+Validation UAR: 0.6093
+Validation accuracy: 0.6228
+Validation loss: 0.9554
+Epoch No. 4--Iteration No. 3908-- batch loss = 1.1999
+Validation UAR: 0.6110
+Validation accuracy: 0.6147
+Validation loss: 0.9591
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.9129
+Validation UAR: 0.6062
+Validation accuracy: 0.5745
+Validation loss: 0.9701
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.9214
+Validation UAR: 0.6022
+Validation accuracy: 0.6093
+Validation loss: 0.9744
+Epoch No. 7--Iteration No. 6839-- batch loss = 0.9869
+Validation UAR: 0.5903
+Validation accuracy: 0.6128
+Validation loss: 1.0126
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.7966
+Validation UAR: 0.5792
+Validation accuracy: 0.6553
+Validation loss: 1.0845
+Epoch No. 9--Iteration No. 8793-- batch loss = 0.8011
+Validation UAR: 0.5811
+Validation accuracy: 0.5807
+Validation loss: 1.1025
+Training lasted 31.69 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.1, 0.001, 0): 0.610996266852025
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0.25, learn rate 0.01 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.1281
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0467
+Epoch No. 2--Iteration No. 1954-- batch loss = 1.0179
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0546
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.3443
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.2335
+Epoch No. 4--Iteration No. 3908-- batch loss = 1.1645
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0320
+Epoch No. 5--Iteration No. 4885-- batch loss = 1.0918
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0245
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.9155
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0115
+Training lasted 21.24 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.25, 0.01, 0): 0.5
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0.25, learn rate 0.005 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 1.3939
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.1304
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.9989
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.1893
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.0421
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0345
+Epoch No. 4--Iteration No. 3908-- batch loss = 1.0885
+Validation UAR: 0.5000
+Validation accuracy: 0.7284
+Validation loss: 1.0099
+Epoch No. 5--Iteration No. 4885-- batch loss = 1.3832
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0198
+Epoch No. 6--Iteration No. 5862-- batch loss = 1.0226
+Validation UAR: 0.5000
+Validation accuracy: 0.2716
+Validation loss: 1.0310
+Training lasted 21.18 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.25, 0.005, 0): 0.5
+
+Beginning assessing cnn hidden 256, rnn hidden 512, drop rate 0.25, learn rate 0.001 and weight dec 0
+Creating a biGRU classifier
+------------------------ Start Training ------------------------
+Epoch No. 1--Iteration No. 977-- batch loss = 0.9781
+Validation UAR: 0.5857
+Validation accuracy: 0.5790
+Validation loss: 0.9761
+Epoch No. 2--Iteration No. 1954-- batch loss = 0.8515
+Validation UAR: 0.5939
+Validation accuracy: 0.6733
+Validation loss: 0.9665
+Epoch No. 3--Iteration No. 2931-- batch loss = 1.0552
+Validation UAR: 0.6117
+Validation accuracy: 0.6170
+Validation loss: 0.9564
+Epoch No. 4--Iteration No. 3908-- batch loss = 0.8055
+Validation UAR: 0.6022
+Validation accuracy: 0.5183
+Validation loss: 0.9894
+Epoch No. 5--Iteration No. 4885-- batch loss = 0.8119
+Validation UAR: 0.5995
+Validation accuracy: 0.6565
+Validation loss: 0.9650
+Epoch No. 6--Iteration No. 5862-- batch loss = 0.9635
+Validation UAR: 0.6050
+Validation accuracy: 0.6321
+Validation loss: 0.9630
+Epoch No. 7--Iteration No. 6839-- batch loss = 1.1495
+Validation UAR: 0.6042
+Validation accuracy: 0.6427
+Validation loss: 0.9723
+Epoch No. 8--Iteration No. 7816-- batch loss = 0.8765
+Validation UAR: 0.5706
+Validation accuracy: 0.6943
+Validation loss: 1.0598
+Training lasted 28.11 minutes
+------------------------ Training Done ------------------------
+Completed (256, 512, 0.25, 0.001, 0): 0.6117209758714564
+
+
+Best cnn hidden: 256, Best rnn hidden: 512, Best weight_decay: 0, Best lr: 0.001, Best dropout: 0.25
+Accuracy: 0.6117
+/home/maroofr/env/lib64/python3.6/site-packages/torch/nn/modules/rnn.py:853: UserWarning: RNN module weights are not part of single contiguous chunk of memory. This means they need to be compacted at every call, possibly greatly increasing memory usage. To compact weights again call flatten_parameters(). (Triggered internally at  ../aten/src/ATen/native/cudnn/RNN.cpp:925.)
+  self.num_layers, self.dropout, self.training, self.bidirectional)
+UAR on test set: 0.6113999179586709, Accuracy on test set: 0.615333401618355 with loss 0.6557535285653632
+(env) [maroofr@gl1022 nn]$ 
